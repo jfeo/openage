@@ -13,6 +13,9 @@
 #include <vector>
 
 namespace openage {
+
+namespace input {struct action_arg_t;}
+
 namespace gui {
 
 using seconds_t = double;
@@ -44,7 +47,7 @@ public:
 		return true;
 	}
 
-	virtual void update(seconds_t /*t*/) {}
+	virtual void update(seconds_t /*t*/) {}// {this->set_layout_data f}
 
 	virtual void draw(const Drawer &drawer) const = 0;
 
@@ -57,31 +60,10 @@ public:
 
 	virtual std::tuple<int, int> get_best_size() const = 0;
 
-	virtual void mouse_left() { }
-	virtual bool mouse_moved(int /*x*/, int /*y*/) { return false; }
-	virtual bool mouse_pressed(std::uint8_t /*button*/) { return false; }
-	virtual void mouse_released(std::uint8_t /*button*/) { }
-	virtual bool mouse_scrolled(int /*relX*/, int /*relY*/) { return false; }
+	virtual bool handle_mouse(const input::action_arg_t &) { return false; }
 
 protected:
 	std::unique_ptr<LayoutData> layout_data;
-};
-
-class MouseTracker {
-public:
-	void mouse_moved(int x, int y) { mX = x; mY = y; }
-
-	void mouse_left() { mX = MOUSE_OUT; }
-
-	bool has_mouse() const { return mX != MOUSE_OUT; }
-
-	int x() const { assert(has_mouse()); return mX; }
-
-	int y() const { assert(has_mouse()); return mY; }
-
-private:
-	static constexpr int MOUSE_OUT = std::numeric_limits<int>::min();
-	int mX = MOUSE_OUT, mY;
 };
 
 } // namespace gui

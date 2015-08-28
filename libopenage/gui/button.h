@@ -3,6 +3,10 @@
 #ifndef OPENAGE_GUI_BUTTON_H_
 #define OPENAGE_GUI_BUTTON_H_
 
+#include <functional>
+
+#include "../input/action.h"
+
 #include "container.h"
 #include "forward.h"
 #include "signal.h"
@@ -16,10 +20,7 @@ public:
 		NORMAL, HOVERED, DOWN, DOWN_OUT
 	};
 
-	virtual void mouse_left_bg() override;
-	virtual bool mouse_moved_bg(int x, int y) override;
-	virtual bool mouse_pressed_bg(std::uint8_t button) override;
-	virtual void mouse_released_bg(std::uint8_t button) override;
+	bool handle_mouse(const input::action_arg_t &arg) override;
 
 	void on_click(Signal<>::function_t &&handler) {
 		sig_click.connect(std::move(handler));
@@ -33,6 +34,9 @@ public:
 	State get_state() const {
 		return state;
 	}
+
+	void set_click(const std::function<void(void)> func);
+
 protected:
 	virtual void set_state(State new_state);
 
@@ -40,6 +44,8 @@ protected:
 
 	Signal<> sig_click;
 	Signal<State> sig_state_change;
+
+	std::unique_ptr<std::function<void(void)>> click_func;
 };
 
 class LabelButton : public Button {

@@ -3,49 +3,39 @@
 #include "button.h"
 
 #include <SDL2/SDL_mouse.h>
+#include "../log/log.h"
 
 namespace openage {
 namespace gui {
 
-bool Button::mouse_moved_bg(int x, int y) {
-	if (state == State::NORMAL) {
-		assert(contains(x, y));
-		set_state(State::HOVERED);
+bool Button::handle_mouse(const input::action_arg_t &arg) {
+	if (arg.e.cc.code != 1)
+	{
+		return false;
 	}
-	else if (state == State::DOWN) {
-		if (!contains(x, y)) set_state(State::DOWN_OUT);
+	if (!this->contains(arg.mouse.x, arg.mouse.y)) {
+		return false;
 	}
-	else if (state == State::DOWN_OUT) {
-		if (contains(x, y)) set_state(State::DOWN);
+	switch (arg.e.cc.eclass) {
+		case input::event_class::MOUSE_DOWN:
+			this->set_state(State::DOWN);
+			break;
+		case input::event_class::MOUSE_UP:
+			this->set_state(State::NORMAL);
+			break;
+		case input::event_class::MOUSE_BUTTON:
+			if (this->click_func.get() != nullptr) {
+				(*this->click_func.get())();
+			}
+			break;
+		default:
+			return false;
 	}
 	return true;
 }
 
-void Button::mouse_left_bg() {
-	set_state(State::NORMAL);
-}
-
-bool Button::mouse_pressed_bg(std::uint8_t button) {
-	if (button == SDL_BUTTON_LEFT) {
-		set_state(State::DOWN);
-		return true;
-	}
-	return false;
-}
-
-void Button::mouse_released_bg(std::uint8_t button) {
-	if (button == SDL_BUTTON_LEFT) {
-		//if (state == State::NORMAL) return; // why would this happen?
-
-		if (state == State::DOWN) {
-			set_state(State::HOVERED);
-			sig_click.emit();
-		}
-		else {
-			assert(state == State::DOWN_OUT);
-			set_state(State::NORMAL);
-		}
-	}
+void Button::set_click(const std::function<void(void)> func) {
+	this->click_func = std::make_unique<std::function<void(void)>>(func);
 }
 
 void Button::set_state(State new_state) {

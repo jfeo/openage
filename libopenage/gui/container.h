@@ -17,23 +17,10 @@ public:
 	ContainerBase();
 	virtual ~ContainerBase();
 
-	virtual void update(seconds_t t) override;
 	virtual void draw(const Drawer &drawer) const override;
 	virtual bool contains(int x, int y) const override;
 
 	virtual std::tuple<int, int> get_best_size() const override;
-
-	virtual void mouse_left() override;
-	virtual bool mouse_moved(int x, int y) override;
-	virtual bool mouse_pressed(std::uint8_t button) override;
-	virtual void mouse_released(std::uint8_t button) override;
-	virtual bool mouse_scrolled(int relX, int relY) override;
-
-	virtual void mouse_left_bg() {}
-	virtual bool mouse_moved_bg(int /*x*/, int /*y*/) { return false; }
-	virtual bool mouse_pressed_bg(std::uint8_t /*button*/) { return false; }
-	virtual void mouse_released_bg(std::uint8_t /*button*/) { }
-	virtual bool mouse_scrolled_bg(int /*relX*/, int /*relY*/) { return false; }
 
 protected:
 	Control *control_at(int x, int y) const;
@@ -90,7 +77,6 @@ protected:
 
 	const std::vector<std::unique_ptr<Control>> &get_controls() const { return controls; }
 
-	MouseTracker mt;
 	std::vector<std::unique_ptr<Control>> controls;
 	std::unique_ptr<Layout> layout;
 	Control *control_under_mouse = nullptr;
