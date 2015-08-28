@@ -1,4 +1,4 @@
-add_sources(${PROJECT_NAME}
+add_sources(libopenage
 	border.cpp
 	button.cpp
 	checkbox.cpp
