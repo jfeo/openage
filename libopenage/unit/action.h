@@ -396,10 +396,11 @@ public:
 	bool completed_in_range(Unit *) const override { return this->complete >= 1.0f; }
 	std::string name() const override { return "build"; }
 	const graphic_set &current_graphics() const override;
+	void on_completion() override;
 
 private:
 	float complete, build_rate;
-
+	Unit *get_incomplete_building(coord::tile pos);
 };
 
 /**
