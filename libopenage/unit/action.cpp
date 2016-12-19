@@ -804,64 +804,36 @@ void BuildAction::update_in_range(unsigned int time, Unit *target_unit) {
 }
 
 void BuildAction::on_completion() {
-	auto &build = this->get_target().get()
-		                ->get_attribute<attr_type::building>();
-	if (build.completed < 1.0f) {
-		log::log(MSG(info) << "Build action cancelled.");
+  // when the action is completed before construction is completed
+  // it must be because the villager was given another task
+	if (this->get_target().get()->has_attribute(attr_type::building) &&
+	    this->get_target().get()->get_attribute<attr_type::building>()
+	    .completed < 1.0f) {
 		return;
 	}
 
-	Unit *u;
-	coord::tile entity_tile = this->entity->location.get()->pos.draw.to_tile3()
-	                              .to_tile();
-	coord::tile check;
-	for (int dist = 0; dist <= 9; dist++) {
-		for (int cur = -dist; cur < dist; cur++) {
-			check.ne = entity_tile.ne + cur;
-			check.se = entity_tile.se - dist;
-			u = this->get_incomplete_building(check);
-			if (u != nullptr) {
-				this->entity->push_action(std::make_unique<BuildAction>(this->entity,
-				    u->get_ref()));
-				return;
-			}
-			check.se = entity_tile.se + dist;
-			u = this->get_incomplete_building(check);
-			if (u != nullptr) {
-				this->entity->push_action(std::make_unique<BuildAction>(this->entity,
-				    u->get_ref()));
-				return;
-			}
-			check.se = entity_tile.se + cur;
-			check.ne = entity_tile.ne - dist;
-			u = this->get_incomplete_building(check);
-			if (u != nullptr) {
-				this->entity->push_action(std::make_unique<BuildAction>(this->entity,
-				    u->get_ref()));
-				return;
-			}
-			check.ne = entity_tile.ne + dist;
-			u = this->get_incomplete_building(check);
-			if (u != nullptr) {
-				this->entity->push_action(std::make_unique<BuildAction>(this->entity,
-				    u->get_ref()));
-				return;
-			}
-		}
-	}
-}
+  // number of tiles to search
+  unsigned int search_limit;
+  SquareObject *target_building = dynamic_cast<SquareObject*>(&(*this->get_target().get()->location));
+  if (target_building->size.ne % 2 == 1) {
+    search_limit = 277;
+  } else {
+    search_limit = 225;
+  }
 
-Unit *BuildAction::get_incomplete_building(coord::tile pos) {
-	auto terrain = this->entity->location->get_terrain();
-	for (TerrainObject *obj : terrain->get_data(pos)->obj) {
-		if (obj->unit.has_attribute(attr_type::building)) {
-			auto &build = obj->unit.get_attribute<attr_type::building>();
-			if (build.completed < 1.0f) {
-				return &obj->unit;
-			}
-		}
+  // find the nearest building
+	auto building = find_near(*this->entity->location.get(),
+		[this](const TerrainObject &obj) {
+			return obj.unit.has_attribute(attr_type::building) &&
+			       obj.unit.get_attribute<attr_type::building>()
+			       .completed < 1.0f;
+			}, search_limit);
+
+	if (building != nullptr) {
+		this->entity->push_action(std::make_unique<BuildAction>(this->entity,
+				building->unit.get_ref()));
+		return;
 	}
-	return nullptr;
 }
 
 const graphic_set &BuildAction::current_graphics() const {

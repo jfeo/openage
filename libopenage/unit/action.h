@@ -400,7 +400,6 @@ public:
 
 private:
 	float complete, build_rate;
-	Unit *get_incomplete_building(coord::tile pos);
 };
 
 /**
